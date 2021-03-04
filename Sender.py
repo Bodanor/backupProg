@@ -5,18 +5,21 @@ import time
 
 IP = "127.0.0.1"
 PORT = 4444
+ROOT = "/"
+
 
 HEADERSIZE = 100
+
+start_backup = time.time()
 server_backup = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_backup.connect((IP, PORT))
 
-print(f"Connected to {IP}")
+print(f"Connecté à {IP}")
 
 
-root = "Envoi/"
 files_list = []
 
-for path, subdirs, files in os.walk(root):
+for path, subdirs, files in os.walk(ROOT):
     for name in files:
         file = os.path.join(path, name)
         files_list.append(file)
@@ -38,13 +41,15 @@ for file_name in files_list:
         data = file.read()
         print(server_backup.sendall(data))
 
-        print("Waiting for status...")
+        print(f"En attente de confirmation pour ! {file_name}")
         status_header = server_backup.recv(HEADERSIZE)
         if not status_header:
-            print("FAILED !")
+            print("[ERREUR] Envoie échoué !")
+            exit(0)
 
         status_length = int(status_header.decode().strip())
         status = server_backup.recv(status_length)
         print(status)
-        print(f"File {file_name} Sended in {time.time() - start_time} seconds !")
-        time.sleep(0.1)
+        print(f"Fichier {file_name} envoyé en {round(time.time() - start_time, 2)} secondes !")
+
+print(f"[INFO] Backup crée sur le serveur ! Temps d'envois total {round(time.time() - start_backup, 2)}")
