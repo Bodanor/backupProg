@@ -1,0 +1,3 @@
+1)Faire en sorte de supprimer les time.sleep en envoyant dans le nom et dans la taille du fichier, le nombre de bits a lire
+2) Faire un round pour le timer
+3) Faire en sorte d'envoyer un fichier lorsque celui-ci est modifier (+ de travail)
