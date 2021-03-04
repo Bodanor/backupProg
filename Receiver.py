@@ -63,12 +63,11 @@ def client_handler(conn):
                 data = conn.recv(1024)
                 if not data:
                     break
-                print(count, file_size)
                 file.write(data)
 
-                count += 1024
+                count += len(data)
 
-        print("OK", len(data))
+        print("OK")
         status = "OK".encode()
         status_header = f"{len(status) : < {HEADERSIZE}}".encode()
         conn.sendall(status_header + status)
@@ -80,6 +79,3 @@ while True:
     print(f"[{time.time() - start_server_timer}]New connection from {addr[0]} on port {addr[1]}")
     client_thread = threading.Thread(target=client_handler, args=(conn,))
     client_thread.start()
-
-
-

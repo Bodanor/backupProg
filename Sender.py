@@ -5,7 +5,7 @@ import time
 
 IP = "127.0.0.1"
 PORT = 4444
-ROOT = "/"
+ROOT = "Minecraft/"
 
 
 HEADERSIZE = 100
