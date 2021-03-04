@@ -28,6 +28,7 @@ for file_name in files_list:
     with open(file_name, "rb") as file:
         c = 0
 
+        start_time = time.time()
         while c <= file_size:
             data = file.read(1024)
             if not (data):
@@ -36,5 +37,5 @@ for file_name in files_list:
             server_backup.sendall(data)
             c+=len(data)
 
-        print(f"File {file_name} Sended !")
+        print(f"File {file_name} Sended in {time.time() - start_time} seconds ! ")
         time.sleep(0.1)

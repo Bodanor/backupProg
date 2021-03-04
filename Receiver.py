@@ -1,34 +1,39 @@
 import socket
 import threading
 import os
-
+import time
 IP = "127.0.0.1"
 PORT = 4444
+
+start_server_timer = time.time()
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 sock.bind((IP, PORT))
 sock.listen(0)
-print("Server receiver Started !")
+print(f"[{time.time() - start_server_timer}]Server receiver Started !")
 
 
 def client_handler(conn):
     if not os.path.exists("Backup"):
         os.mkdir("Backup")
-
+    starting_connection_timer = time.time()
     while True:
-        file_name = conn.recv(100)
+        file_name = conn.recv(1000)
         if not (file_name):
-            print("No more files !")
+            print("All files received ! !")
+            print(f"Collected all files in {time.time() - starting_connection_timer} seconds")
             break
         file_name = file_name.decode()
 
-        file_size = conn.recv(100).decode()
-
+        file_size = conn.recv(1000).decode()
         file_name = "Backup/" + file_name
+        print(file_name)
         if not os.path.exists(os.path.dirname(file_name)):
-            os.mkdir(os.path.dirname(file_name))
+            os.makedirs(os.path.dirname(file_name))
+
+        file_transfer_timer = time.time()
 
         with open(file_name, "wb") as file:
             c = 0
@@ -38,17 +43,14 @@ def client_handler(conn):
                 if not (data):
                     break
                 file.write(data)
-                print(c)
-                print(data)
                 c += len(data)
 
-            print("One file !")
-
+            print(f"File \"{file_name}\" received in {time.time() - file_transfer_timer}")
 
 
 while True:
     conn , addr = sock.accept()
-    print(f"New connection from {addr[0]} on port {addr[1]}")
+    print(f"[{time.time() - start_server_timer}]New connection from {addr[0]} on port {addr[1]}")
     client_thread = threading.Thread(target=client_handler, args=(conn,))
     client_thread.start()
 
