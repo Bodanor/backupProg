@@ -3,6 +3,12 @@ import socket
 import time
 import os
 
+#CHANGER CECI :
+IP = "94.106.242.73"
+PORT = 4444
+ROOT = ".../"
+
+
 #parametrage de curses
 stdscr = curses.initscr()
 curses.noecho()
@@ -15,9 +21,6 @@ curses.init_pair(1,curses.COLOR_GREEN,curses.COLOR_WHITE)
 curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_WHITE)
 curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_WHITE)
 
-IP = "94.106.242.73"
-PORT = 4444
-ROOT = "."
 
 HEADERSIZE = 100
 
@@ -110,14 +113,18 @@ try:
 
             total_file_send+= 1
 
+    server_backup.close()
     stdscr.clear()
     ending_text = f"[INFO] Backup crée sur le serveur ! Temps d'envois total : {round(time.time() - start_backup, 2)} secondes"
-    max_y , max_x = stdscr.getmaxyx()
-    x = max_x//2 - len(ending_text)//2
-    y = max_y//2
+    max_y, max_x = stdscr.getmaxyx()
+    x = max_x // 2 - len(ending_text) // 2
+    y = max_y // 2
+    easter_text = "TRISMOQUE21 POWER !!!"
+    stdscr.addstr(max_y - 1, max_x - len(easter_text) - 1, easter_text)
+    stdscr.addstr(max_y - 1, max_x - len(easter_text) - 1, easter_text)
     stdscr.addstr(y, x, ending_text)
+    stdscr.refresh()
     c = stdscr.getch()
-    server_backup.close()
 
 except KeyboardInterrupt:
     curses.nocbreak()

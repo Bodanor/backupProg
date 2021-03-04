@@ -67,7 +67,6 @@ def client_handler(conn):
 
                 count += len(data)
 
-        print("OK")
         status = "OK".encode()
         status_header = f"{len(status) : < {HEADERSIZE}}".encode()
         conn.sendall(status_header + status)
