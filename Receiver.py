@@ -2,8 +2,12 @@ import socket
 import threading
 import os
 import time
+import datetime
+
 IP = "127.0.0.1"
 PORT = 4444
+
+dest_folder = "Backup"
 
 start_server_timer = time.time()
 
@@ -16,8 +20,13 @@ print(f"[{time.time() - start_server_timer}]Server receiver Started !")
 
 
 def client_handler(conn):
-    if not os.path.exists("Backup"):
-        os.mkdir("Backup")
+    global dest_folder
+    folder_info = datetime.datetime.now()
+    dt_string = folder_info.strftime("_%d%m%y_%H:%M:%S")
+    dest_folder_local = dest_folder + dt_string + "/"
+
+    if not os.path.exists(dest_folder_local):
+        os.mkdir(dest_folder_local)
     starting_connection_timer = time.time()
     while True:
         file_name = conn.recv(1000)
@@ -28,7 +37,7 @@ def client_handler(conn):
         file_name = file_name.decode()
 
         file_size = conn.recv(1000).decode()
-        file_name = "Backup/" + file_name
+        file_name = dest_folder_local + file_name
         print(file_name)
         if not os.path.exists(os.path.dirname(file_name)):
             os.makedirs(os.path.dirname(file_name))
