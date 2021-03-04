@@ -87,3 +87,4 @@ while True:
     print(f"[{time.time() - start_server_timer}]New connection from {addr[0]} on port {addr[1]}")
     client_thread = threading.Thread(target=client_handler, args=(conn,))
     client_thread.start()
+
