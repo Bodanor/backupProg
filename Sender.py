@@ -6,8 +6,9 @@ import os
 #CHANGER CECI :
 IP = "94.106.242.73"
 PORT = 4444
-ROOT = ".../"
+ROOT = "."
 
+HEADERSIZE = 100
 
 #parametrage de curses
 stdscr = curses.initscr()
@@ -22,19 +23,18 @@ curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_WHITE)
 curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_WHITE)
 
 
-HEADERSIZE = 100
-
 start_backup = time.time()
-server_backup = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_backup.connect((IP, PORT))
-
-total_size_send = 0
-total_size_local = 0
-
-total_file_send = 0
-total_file_local = 0
-
 try:
+    server_backup = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_backup.connect((IP, PORT))
+
+    total_size_send = 0
+    total_size_local = 0
+
+    total_file_send = 0
+    total_file_local = 0
+
+
     files_list = []
 
     for path, subdirs, files in os.walk(ROOT):
@@ -84,34 +84,47 @@ try:
                 x = max_x // 2 - len(ending_text) // 2
                 y = max_y // 2
                 stdscr.addstr(y, x, ending_text)
-                c = stdscr.getch()
                 server_backup.close()
+                c = stdscr.getch()
                 exit(0)
 
             status_length = int(status_header.decode().strip())
             status = server_backup.recv(status_length)
-            total_size_send += int(file_size)
+            if status.decode() == "OK":
+                total_size_send += int(file_size)
 
-            for i in range(14,max_y):
+                for i in range(14,max_y):
 
-                stdscr.move(i,0)
+                    stdscr.move(i,0)
+                    stdscr.clrtoeol()
+                stdscr.addstr(14,0,f"Fichier : \"{file_name.decode()}\" envoyé en [{round(time.time() - start_time, 2)}] secondes !")
+                stdscr.refresh()
+                string_mb = f"{round(total_size_send / 1024 ** 2, 2)} MB sur {round(total_size_local / 1024 ** 2, 2)} MB"
+                max_y, max_x = stdscr.getmaxyx()
+                stdscr.move(1, 0)
                 stdscr.clrtoeol()
-            stdscr.addstr(14,0,f"Fichier : \"{file_name.decode()}\" envoyé en [{round(time.time() - start_time, 2)}] secondes !")
-            stdscr.refresh()
-            string_mb = f"{round(total_size_send / 1024 ** 2, 2)} MB sur {round(total_size_local / 1024 ** 2, 2)} MB"
-            max_y, max_x = stdscr.getmaxyx()
-            stdscr.move(1, 0)
-            stdscr.clrtoeol()
-            stdscr.addstr(1,max_x - len(string_mb),string_mb)
-            stdscr.refresh()
-            string_nb_file = f"{total_file_send}/{total_file_local} envoyés"
-            max_y, max_x = stdscr.getmaxyx()
-            stdscr.move(max_y-1, 0)
-            stdscr.clrtoeol()
-            stdscr.addstr(max_y-1, max_x - len(string_nb_file)-1, string_nb_file)
-            stdscr.refresh()
+                stdscr.addstr(1,max_x - len(string_mb),string_mb)
+                stdscr.refresh()
+                string_nb_file = f"{total_file_send}/{total_file_local} envoyés"
+                max_y, max_x = stdscr.getmaxyx()
+                stdscr.move(max_y-1, 0)
+                stdscr.clrtoeol()
+                stdscr.addstr(max_y-1, max_x - len(string_nb_file)-1, string_nb_file)
+                stdscr.refresh()
 
-            total_file_send+= 1
+                total_file_send+= 1
+
+            else:
+                stdscr.clear()
+                ending_text = f"[ERREUR] Le fihier {file_name.decode()} n'as pas pu être sauvegarder sur le serveur distant !"
+                max_y, max_x = stdscr.getmaxyx()
+                x = max_x // 2 - len(ending_text) // 2
+                y = max_y // 2
+                stdscr.addstr(y, x, ending_text)
+                server_backup.close()
+                c = stdscr.getch()
+                exit(0)
+
 
     server_backup.close()
     stdscr.clear()
@@ -133,8 +146,13 @@ except KeyboardInterrupt:
     curses.endwin()
 
 except ConnectionRefusedError:
-    stdscr.addstr(0,0, f"Erreur de connection vers {IP}")
-    stdscr.refresh()
+    stdscr.clear()
+    ending_text = f"[ERREUR] Impossible de se connecter au serveur !"
+    max_y, max_x = stdscr.getmaxyx()
+    x = max_x // 2 - len(ending_text) // 2
+    y = max_y // 2
+    stdscr.addstr(y, x, ending_text)
+    c = stdscr.getch()
 
 
 
