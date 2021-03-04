@@ -7,6 +7,8 @@ import datetime
 IP = "127.0.0.1"
 PORT = 4444
 
+HEADERSIZE = 100
+
 dest_folder = "Backup"
 
 start_server_timer = time.time()
@@ -21,6 +23,7 @@ print(f"[{time.time() - start_server_timer}]Server receiver Started !")
 
 def client_handler(conn):
     global dest_folder
+
     folder_info = datetime.datetime.now()
     dt_string = folder_info.strftime("_%d%m%y_%H:%M:%S")
     dest_folder_local = dest_folder + dt_string + "/"
@@ -28,33 +31,48 @@ def client_handler(conn):
     if not os.path.exists(dest_folder_local):
         os.mkdir(dest_folder_local)
     starting_connection_timer = time.time()
+
     while True:
-        file_name = conn.recv(1000)
-        if not (file_name):
-            print("All files received ! !")
+
+        file_name_header = conn.recv(HEADERSIZE)
+        if not (file_name_header):
+            print("All files received !")
             print(f"Collected all files in {time.time() - starting_connection_timer} seconds")
             break
-        file_name = file_name.decode()
 
-        file_size = conn.recv(1000).decode()
+        file_name_length = int(file_name_header.decode().strip())
+        file_name = conn.recv(file_name_length).decode()
+        file_size_header = conn.recv(HEADERSIZE)
+
+        if not (file_size_header):
+            print("Something went wrong !")
+            break
+        file_size_length = int(file_size_header.decode().strip())
+        file_size = int(conn.recv(file_size_length).decode())
+
+
         file_name = dest_folder_local + file_name
-        print(file_name)
         if not os.path.exists(os.path.dirname(file_name)):
             os.makedirs(os.path.dirname(file_name))
 
         file_transfer_timer = time.time()
-
         with open(file_name, "wb") as file:
-            c = 0
+            count = 0
 
-            while c < int(file_size):
+            while count < file_size:
                 data = conn.recv(1024)
-                if not (data):
+                if not data:
                     break
+                print(count, file_size)
                 file.write(data)
-                c += len(data)
 
-            print(f"File \"{file_name}\" received in {time.time() - file_transfer_timer}")
+                count += 1024
+
+        print("OK", len(data))
+        status = "OK".encode()
+        status_header = f"{len(status) : < {HEADERSIZE}}".encode()
+        conn.sendall(status_header + status)
+        print(f"File \"{file_name}\" received in {time.time() - file_transfer_timer}")
 
 
 while True:

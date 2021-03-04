@@ -2,9 +2,11 @@ import os
 import socket
 import time
 
+
 IP = "127.0.0.1"
 PORT = 4444
 
+HEADERSIZE = 100
 server_backup = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_backup.connect((IP, PORT))
 
@@ -20,22 +22,29 @@ for path, subdirs, files in os.walk(root):
         files_list.append(file)
 
 for file_name in files_list:
+
     file_size = os.path.getsize(file_name)
-    server_backup.send(str(file_name).encode())
-    time.sleep(0.1)
-    server_backup.send(str(file_size).encode())
-    time.sleep(0.1)
+    file_size = str(file_size).encode()
+    file_size_header = f"{len(file_size) : < {HEADERSIZE}}".encode()
+
+    file_name = file_name.encode()
+    file_name_header = f"{len(file_name) : < {HEADERSIZE}}".encode()
+
+    server_backup.sendall(file_name_header + file_name)
+    server_backup.sendall(file_size_header + file_size)
+
     with open(file_name, "rb") as file:
-        c = 0
-
         start_time = time.time()
-        while c <= file_size:
-            data = file.read(1024)
-            if not (data):
-                break
+        data = file.read()
+        print(server_backup.sendall(data))
 
-            server_backup.sendall(data)
-            c+=len(data)
+        print("Waiting for status...")
+        status_header = server_backup.recv(HEADERSIZE)
+        if not status_header:
+            print("FAILED !")
 
-        print(f"File {file_name} Sended in {time.time() - start_time} seconds ! ")
+        status_length = int(status_header.decode().strip())
+        status = server_backup.recv(status_length)
+        print(status)
+        print(f"File {file_name} Sended in {time.time() - start_time} seconds !")
         time.sleep(0.1)
