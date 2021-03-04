@@ -2,10 +2,9 @@ import os
 import socket
 import time
 
-
 IP = "127.0.0.1"
 PORT = 4444
-ROOT = "Minecraft/"
+ROOT = "Envoi/"
 
 
 HEADERSIZE = 100
@@ -13,6 +12,8 @@ HEADERSIZE = 100
 start_backup = time.time()
 server_backup = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_backup.connect((IP, PORT))
+
+total_size_send = 0
 
 print(f"Connecté à {IP}")
 
@@ -39,8 +40,8 @@ for file_name in files_list:
     with open(file_name, "rb") as file:
         start_time = time.time()
         data = file.read()
-        print(server_backup.sendall(data))
 
+        server_backup.sendall(data)
         print(f"En attente de confirmation pour ! {file_name}")
         status_header = server_backup.recv(HEADERSIZE)
         if not status_header:
@@ -49,7 +50,9 @@ for file_name in files_list:
 
         status_length = int(status_header.decode().strip())
         status = server_backup.recv(status_length)
-        print(status)
+        total_size_send += int(file_size)
+        print(f"Envois total : {round(total_size_send / 1024**2, 2)} MB")
         print(f"Fichier {file_name} envoyé en {round(time.time() - start_time, 2)} secondes !")
+        time.sleep(0.1)
 
 print(f"[INFO] Backup crée sur le serveur ! Temps d'envois total {round(time.time() - start_backup, 2)}")

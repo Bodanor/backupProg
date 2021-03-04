@@ -60,7 +60,7 @@ def client_handler(conn):
             count = 0
 
             while count < file_size:
-                data = conn.recv(1024)
+                data = conn.recv(8192)
                 if not data:
                     break
                 file.write(data)
