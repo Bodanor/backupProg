@@ -4,7 +4,7 @@ import os
 import time
 import datetime
 
-IP = "127.0.0.1"
+IP = "192.168.0.7"
 PORT = 4444
 
 HEADERSIZE = 100
@@ -25,7 +25,7 @@ def client_handler(conn):
     global dest_folder
 
     folder_info = datetime.datetime.now()
-    dt_string = folder_info.strftime("_%d%m%y_%H:%M:%S")
+    dt_string = folder_info.strftime("_%d%m%y_%H_%M_%S")
     dest_folder_local = dest_folder + dt_string + "/"
 
     if not os.path.exists(dest_folder_local):
@@ -60,7 +60,7 @@ def client_handler(conn):
             count = 0
 
             while count < file_size:
-                data = conn.recv(8192)
+                data = conn.recv(file_size)
                 if not data:
                     break
                 file.write(data)
